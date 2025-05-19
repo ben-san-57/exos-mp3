@@ -1,4 +1,3 @@
-# media_item.py
 from abc import ABC, abstractmethod
 
 class MediaItem(ABC):

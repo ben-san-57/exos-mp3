@@ -1,4 +1,3 @@
-# music_track.py
 from media_item import MediaItem
 
 class MusicTrack(MediaItem):
