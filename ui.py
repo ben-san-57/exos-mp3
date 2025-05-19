@@ -140,6 +140,8 @@ class MP3ManagerUI:
             return
 
         index = selected_index[0]
+        if index >= len(self.manager.tracks):
+            return
         track = self.manager.tracks[index]
 
         if track.album_art and os.path.exists(track.album_art):
@@ -153,4 +155,16 @@ class MP3ManagerUI:
                 print(f"Erreur de chargement de l'image : {e}")
                 self.album_art_label.configure(image="")
         else:
-            self.album_art_label.configure(image="")
+            default_image = os.path.join("assets", "default_album_art.jpg")
+            if os.path.exists(default_image):
+                try:
+                    img = Image.open(default_image)
+                    img.thumbnail((200, 200))
+                    photo = ImageTk.PhotoImage(img)
+                    self.album_art_label.configure(image=photo)
+                    self.album_art_label.image = photo
+                except Exception as e:
+                    print(f"Erreur de chargement de l'image par défaut : {e}")
+                    self.album_art_label.configure(image="")
+            else:
+                self.album_art_label.configure(image="")
