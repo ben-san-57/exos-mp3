@@ -1,8 +1,8 @@
-import os
 from tkinter import *
 from tkinter import filedialog, messagebox
 from PIL import ImageTk, Image
 from mp3_manager import MP3Manager
+import os
 
 class MP3ManagerUI:
     def __init__(self, root):
@@ -12,6 +12,16 @@ class MP3ManagerUI:
         self.root.title("Gestionnaire de Fichiers MP3")
         self.root.geometry("900x600")
         self.root.configure(bg="#1e1e2f")
+
+        # Précharger une image par défaut dès le départ
+        try:
+            default_img_path = os.path.join("assets", "default_album_art.jpg")
+            img = Image.open(default_img_path)
+            img.thumbnail((200, 200))
+            self.default_photo = ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"❌ Impossible de charger l'image par défaut : {e}")
+            self.default_photo = ""
 
         self.create_widgets()
 
@@ -82,7 +92,9 @@ class MP3ManagerUI:
         self.listbox.pack(side=LEFT, padx=10, fill=Y)
         self.listbox.bind("<<ListboxSelect>>", self.show_album_art)
 
-        self.album_art_label = Label(list_and_image_frame, bg="#1e1e2f")
+        # Label pour afficher l'image (avec image par défaut)
+        self.album_art_label = Label(list_and_image_frame, bg="#1e1e2f", image=self.default_photo)
+        self.album_art_label.image = self.default_photo  # Garde une référence
         self.album_art_label.pack(side=RIGHT, padx=10)
 
         self.view_btn = Button(
@@ -142,29 +154,35 @@ class MP3ManagerUI:
         index = selected_index[0]
         if index >= len(self.manager.tracks):
             return
+
         track = self.manager.tracks[index]
 
+        # Définir le chemin de l'image
         if track.album_art and os.path.exists(track.album_art):
-            try:
-                img = Image.open(track.album_art)
-                img.thumbnail((200, 200))
-                photo = ImageTk.PhotoImage(img)
-                self.album_art_label.configure(image=photo)
-                self.album_art_label.image = photo
-            except Exception as e:
-                print(f"Erreur de chargement de l'image : {e}")
-                self.album_art_label.configure(image="")
+            img_path = track.album_art
+            print(f"🖼️ Tentative de chargement de l’image d’album : {img_path}")
         else:
-            default_image = os.path.join("assets", "default_album_art.jpg")
-            if os.path.exists(default_image):
-                try:
-                    img = Image.open(default_image)
-                    img.thumbnail((200, 200))
-                    photo = ImageTk.PhotoImage(img)
-                    self.album_art_label.configure(image=photo)
-                    self.album_art_label.image = photo
-                except Exception as e:
-                    print(f"Erreur de chargement de l'image par défaut : {e}")
-                    self.album_art_label.configure(image="")
-            else:
-                self.album_art_label.configure(image="")
+            img_path = os.path.join("assets", "default_album_art.jpg")
+            print(f"🖼️ Utilisation de l’image par défaut")
+
+        try:
+            # Ouvrir l'image
+            img = Image.open(img_path)
+            print(f"📄 Format : {img.format}, Mode : {img.mode}, Taille : {img.size}")
+
+            # Conversion en RGB pour éviter les problèmes
+            if img.mode != 'RGB':
+                print("🔄 Conversion en RGB...")
+                img = img.convert('RGB')
+
+            img.thumbnail((200, 200))
+            photo = ImageTk.PhotoImage(img)
+
+            # Forcer la mise à jour de l'image
+            self.album_art_label.configure(image=photo)
+            self.album_art_label.image = photo
+            self.album_art_label.update_idletasks()  # Rafraîchissement forcé
+        except Exception as e:
+            print(f"❌ Erreur lors du chargement de l’image : {e}")
+            self.album_art_label.configure(image="")
+            self.album_art_label.image = None

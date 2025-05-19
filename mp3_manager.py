@@ -38,6 +38,7 @@ class MP3Manager:
                                 album_art_path = os.path.join(self.temp_album_art_dir, album_art_filename)
                                 with open(album_art_path, "wb") as img_file:
                                     img_file.write(image_data)
+                            
                                 break
 
                         track = MusicTrack(path, title, artist, album, genre, duration, album_art_path)
@@ -47,8 +48,17 @@ class MP3Manager:
                         print(f"Erreur lors de la lecture de {file}: {e}")
         return self.tracks
 
+    def sort_by_album(self):
+        """Trie les pistes par album"""
+        self.tracks.sort(key=lambda x: x.album)
+
+    def sort_by_genre(self):
+        """Trie les pistes par genre"""
+        self.tracks.sort(key=lambda x: x.genre)
+
     def copy_by_album(self, destination):
         """Copie les fichiers triés par album"""
+        self.sort_by_album()
         for track in self.tracks:
             target_dir = os.path.join(destination, "Par_Album", track.album)
             os.makedirs(target_dir, exist_ok=True)
@@ -56,6 +66,7 @@ class MP3Manager:
 
     def copy_by_genre(self, destination):
         """Copie les fichiers triés par genre"""
+        self.sort_by_genre()
         for track in self.tracks:
             target_dir = os.path.join(destination, "Par_Genre", track.genre)
             os.makedirs(target_dir, exist_ok=True)
